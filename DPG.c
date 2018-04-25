@@ -108,7 +108,17 @@ struct file_operations DPG_fops = {
 
 static int __init DPG_init(void)
 {
-    int error = 0;
+    int result;
+    int error =0;
+    printk("DPG init called\n");
+    result = register_chrdev(SKELETONDIA_MAJOR,"DPG",&DPG_fops);
+    if(result <0 )
+    {
+	    printk("DPG : Can't get major number!\n:");
+	    return result;
+    }
+    if(SKELETONDIA_MAJOR == 0) SKELETONDIA_MAJOR = result;
+				
     s_pGpioRegisters = (struct GpioRegisters *)ioremap(GPIO_BASE, sizeof(struct GpioRegisters));         // Map physical address to virtual address space.
     SetGPIOFunction(LedGpioPin, 0b001);                    // Configure the pin as output.
     led_kobj = kobject_create_and_add("led_ctrl_pwr", kernel_kobj);
