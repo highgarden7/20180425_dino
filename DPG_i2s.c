@@ -14,7 +14,7 @@
 #include <linux/mm.h>
 #include <linux/ioctl.h>
 #include <linux/ioport.h>
-#include <linux/barrier.h>
+#include <asm/barrier.h>
 #include <linux/sched.h>
 #include <linux/interrupt.h>
 /*************************** BEGIN IOCTL DECLARATIONS **************************/
@@ -273,8 +273,8 @@ int DPG_i2s_release(struct inode *inode, struct file *flip)
 
 struct file_operations DPG_fops = {
     .owner   = THIS_MODULE,
-    .open    = DPG_open,
-    .release = DPG_release,
+    .open    = DPG_i2s_open,
+    .release = DPG_i2s_release,
     //.read    = DPG_read,
     //.write   = DPG_write,
     //.unlocked_ioctl   = DPG_unlocked_ioctl,
@@ -284,14 +284,14 @@ static int __init DPG_i2s_init(void)
 {
     int result;
     printk("DPG init called\n");
-    result = register_chrdev(SKELETONDIA_MAJOR,"DPG",&DPG_fops);
+    result = register_chrdev(MAJOR,"DPG",&DPG_fops);
     if(result <0 )
     {
         printk("DPG : Can't get major number!\n:");
         return result;
     }
-    if(SKELETONDIA_MAJOR == 0)
-        SKELETONDIA_MAJOR = result;
+    if(MAJOR == 0)
+        MAJOR = result;
     
     int error = 0;
     s_pGpioRegisters = (struct GpioRegisters *)ioremap(GPIO_BASE, sizeof(struct GpioRegisters));         // Map physical address to virtual address space.
@@ -315,7 +315,7 @@ static void __exit DPG_i2s_exit(void)
     iounmap(s_pGpioRegisters);                          // Unmap physical to virtual addresses.
     kobject_put(led_kobj);
     printk("<1>Bye Bye Mr.Blue\n");
-    unregister_chrdev(SKELETONDIA_MAJOR,"DPG");
+    unregister_chrdev(MAJOR,"DPG");
 }
 
 module_init(DPG_i2s_init);
